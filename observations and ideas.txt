@@ -2,5 +2,5 @@
 1b. Check if comment looks like source code.
 2. Some users write the comment signs at the very front of the rows, before all whitespaces. (check .dd and .jaz)
 3. Some users prefer different builtins for the same purpose. (e.g. printf instead of cout etc.)
-4. What type of macros do the users use? (e.g. only includes or defines as well)
-5. Check number of commands in each row
+4. What type of macros do the users use? (e.g. only includes or defines as well) - DONE
+5. Check number of commands in each row - DONE

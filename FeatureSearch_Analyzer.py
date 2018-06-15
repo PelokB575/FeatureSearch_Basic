@@ -49,6 +49,7 @@ def feature_search_start(base_dir='.', feat_search=True, make_arff=True, make_st
 
 def get_features_for_file(file, author):
     with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+
         feat_list = {
             'Non-empty Lines': 0,
             'Words': 0,
@@ -91,15 +92,14 @@ def get_features_for_file(file, author):
             'Empty Lines': 0,
             'Tabulators': 0,
             'Spaces': 0,
-            'Space Indents': 0,
             'Tab Indents': 0,
+            'Space Indents': 0,
             'Prefers Tabs over Spaces': 0,
             'Whitespace to Character Ratio': 0,
             'Average Line Length': 0,
             'Line Length Deviation': 0,
             'Author': str(author)
         }
-
         line_lengths = []
         unique_words = {}
 
@@ -149,19 +149,20 @@ def get_features_for_file(file, author):
                 if re.findall(r'^\t+', line):
                     feat_list['Tab Indents'] += 1
 
-                found_comment = re.findall(r'^[\s\t]*(//|/\*)[\s\t]*', line)
+                found_comment = re.findall(r'^[\s\t]*(//|/\*)[\s\t]*', re.sub(r'".*"', '""', line))
                 if found_comment:
                     all_commented_words += re.findall(r'([A-Z]?[a-z]+|[A-Z]+)', found_comment[0])
                     total_comments += 1
                     if last_row_was_comment == 1:
                         multiline_comments += 1
                     last_row_was_comment += 1
+                    multiline_comments += int(not bool(re.findall(r'\*/', re.sub(r'".*"', '""', line))))
                     if line[0] == '/':
                         unindented_comments += 1
                 else:
                     last_row_was_comment = 0
 
-                found_comment = re.findall(r'(?:[};{])\s*(?://|/\*)(.*)$', re.sub(r'".*"', '""', line))
+                found_comment = re.findall(r'(?:[};{])\s*(?://|/\*)(.*)(?:$|\*/)', re.sub(r'".*"', '""', line))
                 if found_comment:
                     total_comments += 1
                     inline_comments += 1
@@ -175,7 +176,7 @@ def get_features_for_file(file, author):
                 feat_list['Commands'] += len(re.findall(r';', re.sub(r'".*"', '""', line)))
                 commands_per_non_empty_line.append(len(re.findall(r';', re.sub(r'".*"', '""', line))))
 
-                found_keyword = re.search(r'^[\s\t]*(if|else|for|while|switch|do)', re.sub(r'".*"', '""', line), re.IGNORECASE)
+                found_keyword = re.search(r'^[\s\t]*(if|else|for|while|switch|do)\s*(\(|$)]', re.sub(r'".*"', '""', line), re.IGNORECASE)
                 if found_keyword:
                     feat_list[f"{found_keyword.group(1).upper()} Keywords"] += 1
 
@@ -197,7 +198,7 @@ def get_features_for_file(file, author):
 
                 all_literals += found_literals
 
-                # Is this, like it or not, the peak of regexp evolution? Probably not
+                # Is this, like it or not, the peak of regexp performance? Probably not
                 found_functions = re.findall(r'(?:\w+(?:\[\d+\]|<\w+>)?[*&]?\s+)+(\w+)\(\s*(?:(?:\w+(?:\[\d+\]|<\w+>)?[*&]?\s+)+(\w+))(?:\s*,\s*(?:\w+(?:\[\d+\]|<\w+>)?[*&]?\s+)+(\w+))*\s*\){?', line)
                 if found_functions:
                     all_functions.append(found_functions[0][0])
@@ -217,7 +218,7 @@ def get_features_for_file(file, author):
                 re.purge()
 
         feat_list['Unique Words'] = len(unique_words) / feat_list['Words'] if feat_list['Words'] > 0 else 0
-        # There shouldn't need to be a check for this... Special thanks for strelok1918 who decided to put a swastika as the sole content of their file
+        # There shouldn't need to be a check for this... Special thanks for strelok1918 who decided to put a swastika as the sole content of one of their files
         # I would laugh, but I spent ~2 hours running this program just so that I could get a ZeroDivisionError because of you...
 
         feat_list['All Keywords'] = (feat_list['IF Keywords'] + feat_list['FOR Keywords'] + feat_list['ELSE Keywords'] +
@@ -242,6 +243,8 @@ def get_features_for_file(file, author):
         feat_list['#DEFINE'] /= feat_list['Non-empty Lines']
         feat_list['#IFDEF'] /= feat_list['Non-empty Lines']
         feat_list['#IFNDEF'] /= feat_list['Non-empty Lines']
+
+        feat_list['Literals'] /= feat_list['Non-empty Lines']
 
         feat_list['Functions'] /= feat_list['Non-empty Lines']
         feat_list['Average Parameter Count'] = sum(function_parameter_count) / len(function_parameter_count) if function_parameter_count != [] else 0
@@ -367,8 +370,8 @@ def dump_to_arff(data, users):
                 ('empty_lines', 'REAL'),
                 ('tabulators', 'REAL'),
                 ('spaces', 'REAL'),
-                ('space_indents', 'REAL'),
                 ('tab_indents', 'REAL'),
+                ('space_indents', 'REAL'),
                 ('prefers_tabs_over_spaces', 'REAL'),
                 ('whitespace_to_character_ratio', 'REAL'),
                 ('average_line_length', 'REAL'),
