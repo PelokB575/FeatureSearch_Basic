@@ -116,6 +116,8 @@ def two_step_classifier(dataset):
 def train_for_user(cl_no, user_no, dataset):
     # print(f'{cl_no}, {user_no}')
 
+    numpy.random.seed(1234567890)
+
     used_classifier = [('LR', LogisticRegression()), ('LDA', LinearDiscriminantAnalysis()), ('KNN', KNeighborsClassifier()),
                        ('CART', DecisionTreeClassifier()), ('NB', GaussianNB()), ('SVM', SVC(probability=True)),
                        ('RF', RandomForestClassifier())][cl_no]
@@ -125,7 +127,7 @@ def train_for_user(cl_no, user_no, dataset):
 
     dset_vals_pos = dataset[(user_no * 9):(user_no * 9) + 8].values
 
-    dset_vals_neg = pandas.concat([dataset[0:(user_no * 9)], dataset[(user_no * 9) + 8:]]).sample(n=9, random_state=1234567890).values
+    dset_vals_neg = my_sample(user_no, dataset).values
     # print(dset_vals_neg[:, -1])
 
     dset_vals_neg[:, -1] = ['noname' for _ in dset_vals_neg]
@@ -139,6 +141,22 @@ def train_for_user(cl_no, user_no, dataset):
     used_model.fit(X, Y)
 
     return used_model
+
+
+def my_sample(user_no, dataset, n=9):
+    user_count = dataset.shape[0] / 9
+    invalid_users = [user_no]
+    chosen_files = []
+
+    for i in range(0, n):
+        chosen_user_no = numpy.random.randint(0, user_count)
+        while chosen_user_no in invalid_users:
+            chosen_user_no = numpy.random.randint(0, user_count)
+        chosen_file_no = numpy.random.randint(0, 9)
+        invalid_users += [chosen_user_no]
+        chosen_files += [chosen_user_no * 9 + chosen_file_no]
+
+    return dataset.iloc[chosen_files, :]
 
 
 def compare_to_user_files(target_features, used_model):
