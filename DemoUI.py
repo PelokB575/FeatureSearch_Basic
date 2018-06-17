@@ -182,7 +182,7 @@ class Ui_FeatureSearchDemo(QMainWindow):
                 verificationResult = QMessageBox()
                 verificationResult.setIcon(QMessageBox.Information)
                 verificationResult.setWindowTitle('Result')
-                verificationResult.setText(f'Confidence that the code belongs to selected user: {class_res*100}%.')
+                verificationResult.setText(f'Confidence that the code belongs to selected user: {round(class_res*100, 2)}%.')
                 verificationResult.setStandardButtons(QMessageBox.Ok)
                 verificationResult.exec_()
             else:
