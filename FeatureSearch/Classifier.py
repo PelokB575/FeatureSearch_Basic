@@ -113,17 +113,20 @@ def two_step_classifier(dataset):
         w.writerow(['TOTAL'] + [str(i) for i in all_results])
 
 
-def compare_to_user_files(user_no, target_features, classifier, dataset):
+def train_for_user(cl_no, user_no, dataset):
+    # print(f'{cl_no}, {user_no}')
+
     used_classifier = [('LR', LogisticRegression()), ('LDA', LinearDiscriminantAnalysis()), ('KNN', KNeighborsClassifier()),
                        ('CART', DecisionTreeClassifier()), ('NB', GaussianNB()), ('SVM', SVC(probability=True)),
-                       ('RF', RandomForestClassifier())][classifier]
+                       ('RF', RandomForestClassifier())][cl_no]
 
     if dataset.shape[0] < 18:
         return -1
 
-    dset_vals_pos = dataset[(user_no * 9):(user_no * 9) + 9].values
+    dset_vals_pos = dataset[(user_no * 9):(user_no * 9) + 8].values
 
-    dset_vals_neg = pandas.concat([dataset[0:(user_no * 9)], dataset[(user_no * 9) + 9:]]).sample(n=9).values
+    dset_vals_neg = pandas.concat([dataset[0:(user_no * 9)], dataset[(user_no * 9) + 8:]]).sample(n=9, random_state=1234567890).values
+    # print(dset_vals_neg[:, -1])
 
     dset_vals_neg[:, -1] = ['noname' for _ in dset_vals_neg]
 
@@ -132,21 +135,13 @@ def compare_to_user_files(user_no, target_features, classifier, dataset):
     X = dset_vals[:, 0:-1]
     Y = dset_vals[:, -1]
 
-    # print(X)
-
-    val_size = 1 / 3
-
-    seed = 65537
-
-    X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, test_size=val_size,
-                                                                                    random_state=seed)
-
-    print(X_train)
-    scoring = 'accuracy'
-
     used_model = used_classifier[1]
-    used_model.fit(X_train, Y_train)
+    used_model.fit(X, Y)
 
+    return used_model
+
+
+def compare_to_user_files(target_features, used_model):
     shaped_feats = numpy.array(list(target_features.values())[0: -1]).reshape(1, -1)
 
     return used_model.predict_proba(shaped_feats)[0][0]

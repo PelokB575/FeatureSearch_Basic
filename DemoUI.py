@@ -17,13 +17,6 @@ class Ui_FeatureSearchDemo(QMainWindow):
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
-        self.progressBar.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setTextVisible(False)
-        self.progressBar.setFormat("")
-        self.progressBar.setObjectName("progressBar")
-        self.gridLayout_2.addWidget(self.progressBar, 1, 0, 1, 1)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.line_2 = QtWidgets.QFrame(self.centralwidget)
@@ -149,6 +142,7 @@ class Ui_FeatureSearchDemo(QMainWindow):
         self.pushButtonVerify.clicked.connect(self.verifyCode)
         self.userList.itemClicked.connect(self.showUserFiles)
         self.codeFileList.itemClicked.connect(self.showCode)
+        self.comboBoxClassifierSelect.currentIndexChanged.connect(self.change_classifier)
 
     def setDataFolder(self):
         self.userList.clear()
@@ -174,30 +168,23 @@ class Ui_FeatureSearchDemo(QMainWindow):
     def importCodeFromFile(self):
         self.verifiableCodeEdit.clear()
         codefile = QFileDialog.getOpenFileName(self, 'Select file to import', '.', 'C++ source files (*.cpp)')
-        with open(codefile[0], 'r') as code:
-            self.verifiableCodeEdit.setPlainText(code.read())
+        if codefile:
+            with open(codefile[0], 'r') as code:
+                self.verifiableCodeEdit.setPlainText(code.read())
 
     def verifyCode(self):
         if self.verifiableCodeEdit.toPlainText():
             with open('FeatureSearch/temp.cpp', 'w') as out:
                 out.write(self.verifiableCodeEdit.toPlainText())
-            features = get_features_for_file('temp.cpp', '')
+            features = get_features_for_file('FeatureSearch/temp.cpp', '')
             if self.userList.selectedItems():
-                class_res = compare_to_user_files(self.userList.selectedIndexes()[0].row(), features, self.comboBoxClassifierSelect.currentIndex(), self.currentDataset)
-                if class_res == -1:
-                    datasetTooSmallWarning = QMessageBox()
-                    datasetTooSmallWarning.setIcon(QMessageBox.Critical)
-                    datasetTooSmallWarning.setWindowTitle('Dataset too Small')
-                    datasetTooSmallWarning.setText('The dataset must contain data from at least 18 files to be used.')
-                    datasetTooSmallWarning.setStandardButtons(QMessageBox.Ok)
-                    datasetTooSmallWarning.exec_()
-                else:
-                    verificationResult = QMessageBox()
-                    verificationResult.setIcon(QMessageBox.Information)
-                    verificationResult.setWindowTitle('Result')
-                    verificationResult.setText(f'Confidence that the code belongs to selected user: {class_res*100}%.')
-                    verificationResult.setStandardButtons(QMessageBox.Ok)
-                    verificationResult.exec_()
+                class_res = compare_to_user_files(features, self.trained_model)
+                verificationResult = QMessageBox()
+                verificationResult.setIcon(QMessageBox.Information)
+                verificationResult.setWindowTitle('Result')
+                verificationResult.setText(f'Confidence that the code belongs to selected user: {class_res*100}%.')
+                verificationResult.setStandardButtons(QMessageBox.Ok)
+                verificationResult.exec_()
             else:
                 noUserSelectedWarning = QMessageBox()
                 noUserSelectedWarning.setIcon(QMessageBox.Warning)
@@ -216,6 +203,7 @@ class Ui_FeatureSearchDemo(QMainWindow):
 
     def showUserFiles(self, item):
         self.codeFileList.clear()
+        self.trained_model = train_for_user(self.comboBoxClassifierSelect.currentIndex(), self.userList.currentRow(), self.currentDataset)
         self.selectedUser = f'{self.usersDir}/{str(item.text())}'
         user_files = next(os.walk(self.selectedUser))[2]
         # print(user_files)
@@ -227,6 +215,10 @@ class Ui_FeatureSearchDemo(QMainWindow):
         self.textBrowserCodeViewer.clear()
         with open(f'{self.selectedUser}/{str(item.text())}', 'r') as src:
             self.textBrowserCodeViewer.setText(src.read())
+
+    def change_classifier(self, index):
+        if self.userList.selectedIndexes():
+            self.trained_model = train_for_user(index, self.userList.selectedIndexes()[0].row(), self.currentDataset)
 
 
 def catch_exceptions(t, val, tb):
