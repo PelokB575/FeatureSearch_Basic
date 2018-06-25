@@ -184,17 +184,17 @@ def get_features_for_file(file, author):
                 feat_list['Commands'] += len(re.findall(r';', re.sub(r'".*"', '""', line)))
                 commands_per_non_empty_line.append(len(re.findall(r';', re.sub(r'".*"', '""', line))))
 
-                found_keyword = re.search(r'^[\s\t]*(if|else|for|while|switch|do)\s*(\(|$)]', re.sub(r'".*"', '""', line), re.IGNORECASE)
+                found_keyword = re.search(r'^[\s\t]*(if|else|for|while|switch|do)\s*(\(|$)', re.sub(r'".*"', '""', line), re.IGNORECASE)
                 if found_keyword:
                     feat_list[f"{found_keyword.group(1).upper()} Keywords"] += 1
 
                 ternaries += len(re.findall(r'(=|==|<|>|<=|>=|!=)[\s\t]*.*\?.*:.*]', line))
 
-                found_macro = re.search(r'^#(include|define|ifdef|ifndef)', line, re.IGNORECASE)
+                found_macro = re.search(r'^#\s*(include|define|ifdef|ifndef)', line, re.IGNORECASE)
                 if found_macro:
                     feat_list['Macros'] += 1
                     feat_list[f"#{found_macro.group(1).upper()}"] += 1
-                    if not feat_list['Using STL Libraries'] and re.findall(r'^#include', line, re.IGNORECASE) and re.findall(stl_headers, line, re.IGNORECASE):
+                    if not feat_list['Using STL Libraries'] and re.findall(r'^#\s*include', line, re.IGNORECASE) and re.findall(stl_headers, line, re.IGNORECASE):
                         feat_list['Using STL Libraries'] = 1
 
                 found_literals_raw = [re.split(r',?\s*=?', s[1]) for s in re.findall(r'(?:\w+(\[\d+\]|<\w+>)?\s+)+((?:\w+\s*=?)(?:,\s*(?:\w+\s*=?))*)', line)]
@@ -213,8 +213,8 @@ def get_features_for_file(file, author):
                     function_parameter_count.append(len(found_functions[0]) - 1)
                     feat_list['Functions'] += 1
 
-                found_typedefs = re.findall(r'^\s*(?:\w+(?:\[\d+\]|<\w+>)?[*&]?\s+)*typedef(?:\w+(?:\[\d+\]|<\w+>)?[*&]?\s+)+(\w+)?\s*[;{]', line, re.IGNORECASE) + re.findall(r'^\s*}\s*(\w+)\s*;', line)
-                if found_typedefs:
+                found_typedefs = re.findall(r'^\s*(?:\w+\s+)*typedef\s*(?:struct)?\s*(?:\w+(?:[*&]|<\w+>)?\s+)*(\w+)\s*[;{]\s*$', line, re.IGNORECASE) + re.findall(r'^\s*}\s*(\w+)\s*;', line)
+                if found_typedefs and found_typedefs[0] != 'struct':
                     feat_list['Custom Types'] += 1
                     all_typedefs += found_typedefs
 
@@ -312,7 +312,7 @@ def check_readability(words):
         return 0
 
     readable = 0
-    with open('FeatureSearch/words.txt', 'r') as readable_words:
+    with open('words.txt', 'r') as readable_words:
 
         for word in words:
             is_readable = word in readable_words.read()
@@ -402,7 +402,7 @@ def take_stats_from_arff(file):
     # stat_df = stat_df[-1:] + stat_df[:-1]
 
     stat_df['using_OOP'] = ((df['object_declarations'] > 0) | (df['object_definitions'] > 0))
-    stat_df['using_STL'] = (df['using_STL_libraries'] == b'True')
+    stat_df['using_STL'] = (df['using_STL_libraries'] == 1)
     # stat_df = stat_df[:4] + stat_df[-1:] + stat_df[5:-1]
 
     stat_df = stat_df[['author', 'lines', 'empty_lines', 'words', 'chars', 'using_OOP', 'using_STL', 'function_name_readability', 'literal_name_readability', 'custom_type_name_readability', 'string_readability', 'comment_readability']]
@@ -428,7 +428,7 @@ if __name__ == "__main__":
     # base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_files_lite"
     # base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\Arff_test"
 
-    arff_file_path = "9Files_largescale_onlyCPP_2018-05-28_23_57.arff"
+    arff_file_path = "../9Files_largescale_onlyCPP_2018-06-15_21_47.arff"
 
     # Begin Feature Search
     # feature_search_start(base_dir=base, make_arff=False, feat_search=False, explicit_arff_path=arff_file_path)

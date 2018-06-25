@@ -10,7 +10,7 @@ import sys
 
 class Ui_FeatureSearchDemo(QMainWindow):
     def setupUi(self, FeatureSearchDemo):
-        self.currentDataset = create_dataset('9Files_largescale_onlyCPP_2018-06-15_21_47.arff')
+        self.currentDataset = create_dataset('9Files_largescale_onlyCPP_2018-06-25_18_03.arff')
         FeatureSearchDemo.setObjectName("FeatureSearchDemo")
         FeatureSearchDemo.resize(640, 553)
         self.centralwidget = QtWidgets.QWidget(FeatureSearchDemo)

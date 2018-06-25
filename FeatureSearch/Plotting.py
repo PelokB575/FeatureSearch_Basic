@@ -24,8 +24,8 @@ def plot_auc(scorefilename):
     lw = 2
     pyplot.plot(fpr_no, tpr_no, color='black', lw=lw, label='AUC = %0.4f' % auc_value_no)
     pyplot.plot([0, 1], [0, 1], color='darkorange', lw=lw, linestyle='--')
-    pyplot.xlim([0.0, 1.0])
-    pyplot.ylim([0.0, 1.05])
+    pyplot.xlim([-0.01, 1.01])
+    pyplot.ylim([-0.01, 1.01])
     pyplot.xlabel('False Positive Rate')
     pyplot.ylabel('True Positive Rate')
     pyplot.title('AUC')
@@ -35,4 +35,4 @@ def plot_auc(scorefilename):
 
 
 if __name__ == '__main__':
-    plot_auc('9Files_largescale_onlyCPP_2018-06-12_13_46_LDA_resprob.csv')
+    plot_auc('../rf_1616.csv')
