@@ -66,8 +66,8 @@ def two_class_classifier(dataset):
             results = []
 
             for name, model in models:
-                kfold = model_selection.KFold(n_splits=12, random_state=seed)
-                cv_results = model_selection.cross_val_score(model, X_train, Y_train, cv=kfold, scoring=scoring)
+                kfold = model_selection.KFold(n_splits=3, random_state=seed)
+                cv_results = model_selection.cross_val_score(model, X, Y, cv=kfold, scoring=scoring)
                 results.append(cv_results)
                 names.append(name)
 
@@ -145,7 +145,8 @@ def compare_to_user_files(target_features, used_model):
 if __name__ == '__main__':
     warnings.filterwarnings("ignore")
     base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_Files\\9Files_largescale_onlyCPP"
-    arff_dataset = create_dataset("../9Files_largescale_onlyCPP_2018-06-25_18_03.arff")
+    # arff_dataset = create_dataset("../9Files_largescale_onlyCPP_2018-06-25_18_03.arff")
+    arff_dataset = create_dataset("../CPP_files_lite_2018-06-27_14_03.arff")
 
     two_class_classifier(arff_dataset)
 

@@ -424,8 +424,8 @@ if __name__ == "__main__":
     # Initialize base values
 
     # Base directory in which the feature search will be performed
-    base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_Files\\9Files_largescale_onlyCPP"
-    # base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_files_lite"
+    # base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_Files\\9Files_largescale_onlyCPP"
+    base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_files_lite"
     # base = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\Arff_test"
 
     arff_file_path = "../9Files_largescale_onlyCPP_2018-06-15_21_47.arff"
