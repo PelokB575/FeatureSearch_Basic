@@ -11,6 +11,7 @@ import sys
 class Ui_FeatureSearchDemo(QMainWindow):
     def setupUi(self, FeatureSearchDemo):
         self.currentDataset = create_dataset('9Files_largescale_onlyCPP_2018-06-25_18_03.arff')
+        self.usersDir = "C:\\Users\\Bence\\Documents\\Lecke\\Diplomamunka\\CPP_Files\\9Files_largescale_onlyCPP"
         FeatureSearchDemo.setObjectName("FeatureSearchDemo")
         FeatureSearchDemo.resize(640, 553)
         self.centralwidget = QtWidgets.QWidget(FeatureSearchDemo)
@@ -143,6 +144,9 @@ class Ui_FeatureSearchDemo(QMainWindow):
         self.userList.itemClicked.connect(self.showUserFiles)
         self.codeFileList.itemClicked.connect(self.showCode)
         self.comboBoxClassifierSelect.currentIndexChanged.connect(self.change_classifier)
+        users = feature_search_start(self.usersDir, False, False, False)
+        for user in users:
+            self.userList.addItem(user)
 
     def setDataFolder(self):
         self.userList.clear()
